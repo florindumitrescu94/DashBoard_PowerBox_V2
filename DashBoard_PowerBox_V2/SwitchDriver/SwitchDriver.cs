@@ -2,10 +2,10 @@
 //
 // ASCOM Switch driver for DashBoardPowerBoxV2
 //
-// Description:	 <To be completed by driver developer>
+// Description:	 ASCOM Driver for DashBoard Power Box Switch V2 Built with Arduino Nano
 //
-// Implements:	ASCOM Switch interface version: <To be completed by driver developer>
-// Author:		(XXX) Your N. Here <your@email.here>
+// Implements:	ASCOM Switch interface version: 1.0.0
+// Author:		Florin Dumitrescu <dumitrescu.florin94@gmail.com>
 //
 
 using ASCOM;
@@ -35,7 +35,7 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
     [ComVisible(true)]
     [Guid("7d578371-6680-4aff-844c-bdc607f6e798")]
     [ProgId("ASCOM.DashBoardPowerBoxV2.Switch")]
-    [ServedClassName("ASCOM Switch Driver for DashBoardPowerBoxV2")] // Driver description that appears in the Chooser, customise as required
+    [ServedClassName("DashBoard PowerBox V2")] // Driver description that appears in the Chooser, customise as required
     [ClassInterface(ClassInterfaceType.None)]
     public class Switch : ReferenceCountedObjectBase, ISwitchV2, IDisposable
     {

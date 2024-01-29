@@ -17,6 +17,7 @@ using ASCOM.Utilities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Windows.Forms;
 
 namespace ASCOM.DashBoardPowerBoxV2.Switch
@@ -471,6 +472,7 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             // TODO customise this device description if required
             get
             {
+                string DriverDescription = "ASCOM Driver for DashBoard PowerBox V2";
                 LogMessage("Description Get", DriverDescription);
                 return DriverDescription;
             }
@@ -823,8 +825,33 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
         internal static bool GetSwitch(short id)
         {
             Validate("GetSwitch", id);
-            LogMessage("GetSwitch", $"GetSwitch({id}) - not implemented");
-            throw new MethodNotImplementedException("GetSwitch");
+            string DCJackState;
+            double ValueState;
+            using (var driverProfile = new Profile())
+            {
+                driverProfile.DeviceType = "Switch";
+                if (id == 0 & Convert.ToInt16(numSwitch) >= 1)
+                {
+                    objSerial.Transmit("GETSTATUSDCJACK#");
+                    DCJackState = objSerial.ReceiveTerminated("#");
+                    ValueState = Convert.ToDouble(DCJackState.Replace("#", ""));
+                    if (ValueState == 1)
+                    {
+                        LogMessage("GetSwitch " + id.ToString(), "True");
+                        return true;
+                    }
+                    else
+                    {
+                        LogMessage("GetSwitch " + id.ToString(), "False");
+                        return false;
+                    }
+                }
+                else
+                {
+                    LogMessage("GetSwitch", $"GetSwitch({id}) - not implemented");
+                    throw new MethodNotImplementedException("GetSwitch");
+                }
+            }   
         }
 
         /// <summary>
@@ -835,14 +862,61 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
         internal static void SetSwitch(short id, bool state)
         {
             Validate("SetSwitch", id);
-            if (!CanWrite(id))
+            if (CanWrite(id))
+            {
+                using (var driverProfile = new Profile())
+                {
+                    driverProfile.DeviceType = "Switch";
+                    string numSetSwitch;
+                    if (state == false)
+                    {
+                        LogMessage("SetSwitch", id.ToString(), state.ToString());
+                        if (id == 0 & Convert.ToInt16(numSwitch) >= 1)
+                        {
+                            SwitchState0 = "OFF";
+                            driverProfile.WriteValue(DriverProgId, SwitchState0ProfileName, SwitchState0.ToString(), "DC Jacks");
+                            numSetSwitch = "SETSTATUSDCJACK_OFF#";
+                        }
+                        else
+                        {
+                            LogMessage("SetSwitch", $"SetSwitch({id}) = {state} - not implemented");
+                            throw new MethodNotImplementedException("SetSwitch");
+                        }
+                    }
+                    else if (state == true)
+                    {
+                        LogMessage("SetSwitch", id.ToString(), state.ToString());
+                        if (id == 0 & Convert.ToInt16(numSwitch) >= 1)
+                        {
+                            SwitchState0 = "ON";
+                            driverProfile.WriteValue(DriverProgId, SwitchState0ProfileName, SwitchState0.ToString(), "DC Jacks");
+                            numSetSwitch = "SETSTATUSDCJACK_ON#";
+                        }
+                        else
+                        {
+                            {
+                                LogMessage("SetSwitch", $"SetSwitch({id}) = {state} - not implemented");
+                                throw new MethodNotImplementedException("SetSwitch");
+                            }
+                        }
+                        objSerial.Transmit(numSetSwitch);
+                        objSerial.ReceiveTerminated("#");
+                    }
+                    else
+                    {
+                        LogMessage("SetSwitch" + id.ToString(), "Invalid Value");
+                        throw new InvalidValueException("SetSwitch", id.ToString(), string.Format("0 to {0}", Convert.ToInt16(numSwitch) - 1));
+                    }
+                }
+            }
+            else
             {
                 var str = $"SetSwitch({id}) - Cannot Write";
                 LogMessage("SetSwitch", str);
                 throw new MethodNotImplementedException(str);
             }
-            LogMessage("SetSwitch", $"SetSwitch({id}) = {state} - not implemented");
-            throw new MethodNotImplementedException("SetSwitch");
+
+
         }
 
         #endregion
@@ -1099,7 +1173,7 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
         internal static void SetSwitchValue(short id, double value)
         {
             Validate("SetSwitchValue", id, value);
-            if (!CanWrite(id))
+            if (CanWrite(id))
             {
                 string SwitchValue = "";
                 using (var driverProfile = new Profile())
