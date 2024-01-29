@@ -1,4 +1,4 @@
-﻿/* Written by: Florin Dumitrescu
+/* Written by: Florin Dumitrescu
  *  for ascom_powerbox_and_ambientconditions built with
  *  Arduino NANO V3
  *  January 2024
