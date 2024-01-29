@@ -127,9 +127,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\dashboard_powerbox_v2\dashboard_powerbox_v2.ino" />
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="DashBoard_PowerBox_V2.ino" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

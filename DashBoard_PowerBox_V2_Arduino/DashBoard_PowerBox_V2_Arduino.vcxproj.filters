@@ -11,9 +11,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\dashboard_powerbox_v2\dashboard_powerbox_v2.ino" />
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="DashBoard_PowerBox_V2.ino" />
   </ItemGroup>
 </Project>

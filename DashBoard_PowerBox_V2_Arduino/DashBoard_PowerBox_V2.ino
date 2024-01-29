@@ -15,10 +15,12 @@ DHTStable DHT;
 int DC_JACK_STATE = 0;
 int PWM1_STATE = 0;
 int PWM2_STATE = 0;
+int ntc_beta = 3380;
+int ntc_ohm = 10000;
+int ref_ohm = 10000;
 float NTC1_VALUE = 0;
-int PWM1_AUTO = 0;
+int PWM_AUTO = 0;
 float NTC2_VALUE = 0;
-int PWM2_AUTO = 0;
 float TEMP = 0.0;
 int HUM_REL = 0;
 float HUM_ABS = 0.0;
@@ -35,8 +37,7 @@ float AMP = 0.00;
 float PWR = 0.00;
 long int time1=0;
 long int time2=0;
-float timetotal_ntc1=0;
-float timetotal_ntc2=0;
+float timetotal_ntc=0;
 float PWR_TOTAL=0.00;
 
 const int DC_JACK = 4;
@@ -74,10 +75,6 @@ void setup()
 //LOOP TO READ SERIAL COMMANDS
 void loop()
 {
-  int indexofpwm1=0;
-  int indexofpwm2=0;
-  String valueofpwm1="";
-  String valueofpwm2="";
   RUN_AUTO_PWM();
   GET_POWER();
     String cmd;
@@ -96,12 +93,9 @@ void loop()
             Serial.print(PWM1_STATE);
             Serial.println("#");
         }
-        else if (cmd == "GETAUTOPWM1") SET_PWM_AUTO(1,PWM1_AUTO);
-        else if (cmd == "SETAUTOPWM1_ON") SET_PWM_AUTO(1,1);
-        else if (cmd == "SETAUTOPWM1_OFF") SET_PWM_AUTO(1,0);
-        else if (cmd == "GETAUTOPWM2") SET_PWM_AUTO(2,PWM2_AUTO);
-        else if (cmd == "SETAUTOPWM2_ON") SET_PWM_AUTO(2,1);
-        else if (cmd == "SETAUTOPWM2_OFF") SET_PWM_AUTO(2,0);
+        else if (cmd == "GETAUTOPWM") SET_PWM_AUTO(PWM_AUTO);
+        else if (cmd == "SETAUTOPWM_ON") SET_PWM_AUTO(1);
+        else if (cmd == "SETAUTOPWM_OFF") SET_PWM_AUTO(0);
         else if (cmd == "GETNTC1TEMP"){
           NTC1_VALUE = GET_NTC(1);
           Serial.print(NTC1_VALUE);
@@ -225,22 +219,12 @@ void SET_DC_JACK(int state){
 //END SET DC JACK STATE
 
 //SET PWM AUTO
-void SET_PWM_AUTO(int pwmno,int state){
-  if (pwmno == 1)
-  {
-    if (state == 1) PWM1_AUTO = 1;
-    if (state == 0) PWM1_AUTO = 0; 
-    Serial.print(PWM1_AUTO);
+void SET_PWM_AUTO(int state){
+
+    PWM_AUTO = state; 
+    Serial.print(PWM_AUTO);
     Serial.println("#");
   }
-  if (pwmno == 2)
-  {
-    if (state == 1) PWM2_AUTO = 1;
-    if (state == 0) PWM2_AUTO = 0; 
-    Serial.print(PWM2_AUTO);
-    Serial.println("#");
-  }
-}
 //SET PWM POWER
 void SET_PWM_POWER(int pwmno,int state) {
     int pwm_pin = (state*255)/100;
@@ -263,11 +247,11 @@ void SET_PWM_POWER(int pwmno,int state) {
 
 // RUN PWM AUTO 
 void RUN_AUTO_PWM(){
-   if(PWM1_AUTO == 1) // PWM1 AUTO
+   if(PWM_AUTO == 1) // PWM1 AUTO
    {
-    if (timetotal_ntc1 > 450)
+    if (timetotal_ntc > 450)
      {
-      NTC1_VALUE=GET_NTC(1);
+     if (NTC1_VALUE > -40) {
      if (NTC1_VALUE - TEMP < 1 && PWM1_STATE < 100)
      {
        PWM1_STATE = PWM1_STATE + 10;
@@ -280,16 +264,8 @@ void RUN_AUTO_PWM(){
         PWM1_STATE = CORRECT_PWM(PWM1_STATE);
         SET_PWM_VALUE(1,PWM1_STATE);
       }
-      timetotal_ntc1 = 0;
-    }
-    timetotal_ntc1 += 1;
-   }
-   else if (PWM1_AUTO == 0) timetotal_ntc1 = 0;
-   else if (PWM2_AUTO == 1) // PWM2 AUTO
-   {
-    if (timetotal_ntc2 > 450)
-     {
-      NTC2_VALUE = GET_NTC(2);
+     }
+     if (NTC2_VALUE > -40) {
      if (NTC2_VALUE - TEMP < 1 && PWM2_STATE<100)
      {
        PWM2_STATE = PWM2_STATE + 10;
@@ -302,11 +278,12 @@ void RUN_AUTO_PWM(){
        PWM2_STATE = CORRECT_PWM(PWM2_STATE);
        SET_PWM_VALUE(2,PWM2_STATE);
      }
-        timetotal_ntc2 = 0;
      }
-      timetotal_ntc2 += 1;
+        timetotal_ntc = 0;
+     }
+      timetotal_ntc += 1;
    }
-   else if (PWM2_AUTO == 0) timetotal_ntc2 = 0;
+   else if (PWM_AUTO == 0) timetotal_ntc = 0;
 }
 //END SET AUTO PWM POWER
 
@@ -324,12 +301,15 @@ double GET_NTC(int ntc_no)
    avg_read = ntc_read_sum/40;
    digitalWrite(NTC_VCC,LOW);
    avg_read = 1023 / avg_read-1;
-   avg_read = 10000 / avg_read;
-   float temp_ntc = avg_read / 10000;
+   avg_read = ntc_ohm / avg_read;
+   float temp_ntc = avg_read / ref_ohm ;
    temp_ntc=log(temp_ntc);
-   temp_ntc /= 3380;
+   temp_ntc /= ntc_beta;
    temp_ntc +=1.0/(25 + 273.15);
    temp_ntc = (1.0/temp_ntc) - 273.15; 
+   if (isnan(temp_ntc)){
+    temp_ntc = -40;
+   }
    return temp_ntc;
 }
 // END GET NTC TEMP
