@@ -18,6 +18,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
+using System.Net.NetworkInformation;
 using System.Windows.Forms;
 
 namespace ASCOM.DashBoardPowerBoxV2.Switch
@@ -861,13 +862,13 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
         /// <param name="state">The required control state</param>
         internal static void SetSwitch(short id, bool state)
         {
+            string numSetSwitch;
             Validate("SetSwitch", id);
             if (CanWrite(id))
             {
                 using (var driverProfile = new Profile())
                 {
                     driverProfile.DeviceType = "Switch";
-                    string numSetSwitch;
                     if (state == false)
                     {
                         LogMessage("SetSwitch", id.ToString(), state.ToString());
@@ -899,8 +900,6 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
                                 throw new MethodNotImplementedException("SetSwitch");
                             }
                         }
-                        objSerial.Transmit(numSetSwitch);
-                        objSerial.ReceiveTerminated("#");
                     }
                     else
                     {
@@ -908,6 +907,8 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
                         throw new InvalidValueException("SetSwitch", id.ToString(), string.Format("0 to {0}", Convert.ToInt16(numSwitch) - 1));
                     }
                 }
+                objSerial.Transmit(numSetSwitch);
+                objSerial.ReceiveTerminated("#");
             }
             else
             {
