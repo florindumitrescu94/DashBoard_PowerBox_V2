@@ -36,15 +36,14 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             this.label2 = new System.Windows.Forms.Label();
             this.chkTrace = new System.Windows.Forms.CheckBox();
             this.comboBoxComPort = new System.Windows.Forms.ComboBox();
-            this.chkTempSensors = new System.Windows.Forms.CheckBox();
+            this.chkNTC = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.picASCOM)).BeginInit();
             this.SuspendLayout();
             // 
             // cmdOK
             // 
-            this.cmdOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.cmdOK.Location = new System.Drawing.Point(275, 83);
+            this.cmdOK.Location = new System.Drawing.Point(149, 83);
             this.cmdOK.Name = "cmdOK";
             this.cmdOK.Size = new System.Drawing.Size(59, 24);
             this.cmdOK.TabIndex = 0;
@@ -54,9 +53,8 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             // 
             // cmdCancel
             // 
-            this.cmdCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cmdCancel.Location = new System.Drawing.Point(340, 82);
+            this.cmdCancel.Location = new System.Drawing.Point(214, 82);
             this.cmdCancel.Name = "cmdCancel";
             this.cmdCancel.Size = new System.Drawing.Size(59, 25);
             this.cmdCancel.TabIndex = 1;
@@ -74,10 +72,9 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             // 
             // picASCOM
             // 
-            this.picASCOM.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.picASCOM.Cursor = System.Windows.Forms.Cursors.Hand;
             this.picASCOM.Image = ((System.Drawing.Image)(resources.GetObject("picASCOM.Image")));
-            this.picASCOM.Location = new System.Drawing.Point(351, 9);
+            this.picASCOM.Location = new System.Drawing.Point(216, 9);
             this.picASCOM.Name = "picASCOM";
             this.picASCOM.Size = new System.Drawing.Size(48, 56);
             this.picASCOM.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -98,7 +95,7 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             // chkTrace
             // 
             this.chkTrace.AutoSize = true;
-            this.chkTrace.Location = new System.Drawing.Point(12, 83);
+            this.chkTrace.Location = new System.Drawing.Point(12, 80);
             this.chkTrace.Name = "chkTrace";
             this.chkTrace.Size = new System.Drawing.Size(69, 17);
             this.chkTrace.TabIndex = 6;
@@ -113,22 +110,22 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             this.comboBoxComPort.Size = new System.Drawing.Size(69, 21);
             this.comboBoxComPort.TabIndex = 7;
             // 
-            // chkTempSensors
+            // chkNTC
             // 
-            this.chkTempSensors.AutoSize = true;
-            this.chkTempSensors.Location = new System.Drawing.Point(164, 32);
-            this.chkTempSensors.Name = "chkTempSensors";
-            this.chkTempSensors.Size = new System.Drawing.Size(173, 17);
-            this.chkTempSensors.TabIndex = 8;
-            this.chkTempSensors.Text = "Temperature Sensors Available";
-            this.chkTempSensors.UseVisualStyleBackColor = true;
+            this.chkNTC.AutoSize = true;
+            this.chkNTC.Location = new System.Drawing.Point(12, 57);
+            this.chkNTC.Name = "chkNTC";
+            this.chkNTC.Size = new System.Drawing.Size(167, 17);
+            this.chkNTC.TabIndex = 8;
+            this.chkNTC.Text = "Dew temp sensors connected";
+            this.chkNTC.UseVisualStyleBackColor = true;
             // 
             // SetupDialogForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(411, 119);
-            this.Controls.Add(this.chkTempSensors);
+            this.ClientSize = new System.Drawing.Size(278, 114);
+            this.Controls.Add(this.chkNTC);
             this.Controls.Add(this.comboBoxComPort);
             this.Controls.Add(this.chkTrace);
             this.Controls.Add(this.label2);
@@ -159,6 +156,6 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.CheckBox chkTrace;
         private System.Windows.Forms.ComboBox comboBoxComPort;
-        private System.Windows.Forms.CheckBox chkTempSensors;
+        private System.Windows.Forms.CheckBox chkNTC;
     }
 }

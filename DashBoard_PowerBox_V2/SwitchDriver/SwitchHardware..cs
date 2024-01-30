@@ -17,6 +17,7 @@ using ASCOM.Utilities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Diagnostics.Eventing.Reader;
 using System.Net.NetworkInformation;
 using System.Windows.Forms;
@@ -43,10 +44,11 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
         internal static string ConnectionDelay;
 
         internal static string numSwitchProfileName = "Max Switches";
-        internal static string numSwitchDefault = "10";
-        internal static string numSwitch;
+        internal static string numSwitchDefault = "11";
+        internal static string numSwitch = "11";
 
         internal static string SwitchName0ProfileName = "DC Jacks";
+        internal static string SwitchNameAProfileName = "Auto PWM";
         internal static string SwitchName1ProfileName = "PWM 1 - Main";
         internal static string SwitchName2ProfileName = "PWM 2 - Guide";
         internal static string SwitchName3ProfileName = "Temperature sensor";
@@ -57,6 +59,7 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
         internal static string SwitchName8ProfileName = "Power sensor";
         internal static string SwitchName9ProfileName = "Total power usage";
         internal static string SwitchName0Default = "DC Jacks";
+        internal static string SwitchNameADefault = "Auto PWM";
         internal static string SwitchName1Default = "PWM 1 - Main";
         internal static string SwitchName2Default = "PWM 2 - Guide";
         internal static string SwitchName3Default = "Temperature sensor";
@@ -67,6 +70,7 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
         internal static string SwitchName8Default = "Power sensor";
         internal static string SwitchName9Default = "Total power consumption";
         internal static string SwitchName0;
+        internal static string SwitchNameA;
         internal static string SwitchName1;
         internal static string SwitchName2;
         internal static string SwitchName3;
@@ -78,6 +82,7 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
         internal static string SwitchName9;
 
         internal static string SwitchState0ProfileName = "DC Jack state";
+        internal static string SwitchStateAProfileName = "Auto PWM state";
         internal static string SwitchState1ProfileName = "PWM 1 state";
         internal static string SwitchState2ProfileName = "PWM 2 state";
         internal static string SwitchState3ProfileName = "Temperature reading";
@@ -88,6 +93,7 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
         internal static string SwitchState8ProfileName = "Power reading";
         internal static string SwitchState9ProfileName = "Total power usage reading";
         internal static string SwitchState0Default = "OFF";
+        internal static string SwitchStateADefault = "OFF";
         internal static string SwitchState1Default = "0";
         internal static string SwitchState2Default = "0";
         internal static string SwitchState3Default = "0.00";
@@ -98,6 +104,7 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
         internal static string SwitchState8Default = "0.00";
         internal static string SwitchState9Default = "0.00";
         internal static string SwitchState0;
+        internal static string SwitchStateA;
         internal static string SwitchState1;
         internal static string SwitchState2;
         internal static string SwitchState3;
@@ -403,6 +410,10 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
                     {
                         SwitchState9 = "0";
                     }
+                    else if (Convert.ToInt16(numSwitch) >= 11)
+                    {
+                        SwitchStateA = "OFF";
+                    }
                     else
                     {
                         LogMessage("Switch" + numSwitch.ToString(), "Invalid Value");
@@ -451,6 +462,10 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
                     else if (Convert.ToInt16(numSwitch) >= 10)
                     {
                         SwitchState9 = "0";
+                    }
+                    else if (Convert.ToInt16(numSwitch) >= 11)
+                    {
+                        SwitchStateA = "OFF";
                     }
                     else
                     {
@@ -612,6 +627,11 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
                     LogMessage("GetSwitchName " + id.ToString(), SwitchName9);
                     return SwitchName9;
                 }
+                else if (id == 10 & Convert.ToInt16(numSwitch) >= 11)
+                {
+                    LogMessage("GetSwitchName " + id.ToString(), SwitchNameA);
+                    return SwitchNameA;
+                }
                 else
                 {
                     LogMessage("GetSwitchName", "Not Implemented");
@@ -691,6 +711,12 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
                     SwitchName9 = name;
                     driverProfile.WriteValue(DriverProgId, SwitchName9ProfileName, SwitchName9.ToString(), "Total Power Consumption");
                 }
+                else if (id == 10 & Convert.ToInt16(numSwitch) >= 11)
+                {
+                    LogMessage("SetSwitchName " + id.ToString(), name);
+                    SwitchNameA = name;
+                    driverProfile.WriteValue(DriverProgId, SwitchNameAProfileName, SwitchNameA.ToString(), "PWM 1/2 Automation");
+                }
                 else
                 {
                     LogMessage("SetSwitchName", $"SetSwitchName({id}) = {name} - not implemented");
@@ -750,6 +776,10 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             else if (id == 9 & Convert.ToInt16(numSwitch) >= 10)
             {
                 s_GetSwitchDescription = "Total power consumption since connected in Watts*Hour";
+            }
+            else if (id == 10 & Convert.ToInt16(numSwitch) >= 11)
+            {
+                s_GetSwitchDescription = "PWM 1/2 Automation based on temperature";
             }
             else
             { 
@@ -811,6 +841,10 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             {
                 PortCanWrite = false; //Gauge
             }
+            else if (id == 10 & Convert.ToInt16(numSwitch) >= 11)
+            {
+                PortCanWrite = true; //Gauge
+            }
             //tl.LogMessage("CanWrite to Port ", id.ToString(), PortCanWrite);
             LogMessage("CanWrite", $"CanWrite({id}): {PortCanWrite}");
             return PortCanWrite;
@@ -847,6 +881,22 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
                         return false;
                     }
                 }
+                else if (id == 10 & Convert.ToInt16(numSwitch) >= 11)
+                {
+                    objSerial.Transmit("GETAUTOPWM#");
+                    DCJackState = objSerial.ReceiveTerminated("#");
+                    ValueState = Convert.ToDouble(DCJackState.Replace("#", ""));
+                    if (ValueState == 1)
+                    {
+                        LogMessage("GetSwitch " + id.ToString(), "True");
+                        return true;
+                    }
+                    else
+                    {
+                        LogMessage("GetSwitch " + id.ToString(), "False");
+                        return false;
+                    }
+                }
                 else
                 {
                     LogMessage("GetSwitch", $"GetSwitch({id}) - not implemented");
@@ -863,48 +913,46 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
         internal static void SetSwitch(short id, bool state)
         {
             string numSetSwitch;
+            string StateValue;
             Validate("SetSwitch", id);
+            if (state == true)
+            {
+                StateValue = "ON";
+            }
+            else if (state == false)
+            {
+                StateValue = "OFF";
+            }
+            else
+                    {
+                LogMessage("SetSwitch" + id.ToString(), "Invalid Value");
+                throw new InvalidValueException("SetSwitch", id.ToString(), string.Format("0 to {0}", Convert.ToInt16(numSwitch) - 1));
+            }
+
             if (CanWrite(id))
             {
                 using (var driverProfile = new Profile())
                 {
                     driverProfile.DeviceType = "Switch";
-                    if (state == false)
                     {
                         LogMessage("SetSwitch", id.ToString(), state.ToString());
                         if (id == 0 & Convert.ToInt16(numSwitch) >= 1)
                         {
-                            SwitchState0 = "OFF";
+                            SwitchState0 = StateValue;
                             driverProfile.WriteValue(DriverProgId, SwitchState0ProfileName, SwitchState0.ToString(), "DC Jacks");
-                            numSetSwitch = "SETSTATUSDCJACK_OFF#";
+                            numSetSwitch = "SETSTATUSDCJACK_"+StateValue.ToString()+"#";
+                        }
+                        else if (id == 10 & Convert.ToInt16(numSwitch) >= 11)
+                        {
+                            SwitchState0 = StateValue;
+                            driverProfile.WriteValue(DriverProgId, SwitchStateAProfileName, SwitchStateA.ToString(), "Auto PWM");
+                            numSetSwitch = "SETAUTOPWM_" + StateValue.ToString() + "#";
                         }
                         else
                         {
                             LogMessage("SetSwitch", $"SetSwitch({id}) = {state} - not implemented");
                             throw new MethodNotImplementedException("SetSwitch");
                         }
-                    }
-                    else if (state == true)
-                    {
-                        LogMessage("SetSwitch", id.ToString(), state.ToString());
-                        if (id == 0 & Convert.ToInt16(numSwitch) >= 1)
-                        {
-                            SwitchState0 = "ON";
-                            driverProfile.WriteValue(DriverProgId, SwitchState0ProfileName, SwitchState0.ToString(), "DC Jacks");
-                            numSetSwitch = "SETSTATUSDCJACK_ON#";
-                        }
-                        else
-                        {
-                            {
-                                LogMessage("SetSwitch", $"SetSwitch({id}) = {state} - not implemented");
-                                throw new MethodNotImplementedException("SetSwitch");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        LogMessage("SetSwitch" + id.ToString(), "Invalid Value");
-                        throw new InvalidValueException("SetSwitch", id.ToString(), string.Format("0 to {0}", Convert.ToInt16(numSwitch) - 1));
                     }
                 }
                 objSerial.Transmit(numSetSwitch);
@@ -973,6 +1021,10 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             {
                 MaxValue = 2500;
             }
+            else if (id == 10 & Convert.ToInt16(numSwitch) >= 11)
+            {
+                MaxValue = 1;
+            }
             else
             {
                 LogMessage("MaxSwitchValue", $"MaxSwitchValue({id}) - not implemented");
@@ -1029,6 +1081,10 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
                 MinValue = 0;
             }
             else if (id == 9 & Convert.ToInt16(numSwitch) >= 10)
+            {
+                MinValue = 0;
+            }
+            else if (id == 10 & Convert.ToInt16(numSwitch) >= 11)
             {
                 MinValue = 0;
             }
@@ -1089,6 +1145,10 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             else if (id == 9 & Convert.ToInt16(numSwitch) >= 10)
             {
                 SwitchStepValue = 0.01;
+            }
+            else if (id == 10 & Convert.ToInt16(numSwitch) >= 11)
+            {
+                SwitchStepValue = 1;
             }
             else
             {
@@ -1176,7 +1236,7 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             Validate("SetSwitchValue", id, value);
             if (CanWrite(id))
             {
-                string SwitchValue = "";
+                string SwitchValue;
                 using (var driverProfile = new Profile())
                 {
                     driverProfile.DeviceType = "Switch";
@@ -1312,6 +1372,8 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
                 SwitchState8 = driverProfile.GetValue(DriverProgId, SwitchState8ProfileName, "Power sensor", SwitchState8Default);
                 SwitchName9 = driverProfile.GetValue(DriverProgId, SwitchName9ProfileName, "Total power usage", SwitchName9Default);
                 SwitchState9 = driverProfile.GetValue(DriverProgId, SwitchState9ProfileName, "Total power usage", SwitchState9Default);
+                SwitchNameA = driverProfile.GetValue(DriverProgId, SwitchNameAProfileName, "PWM 1/2 Auto", SwitchNameADefault);
+                SwitchStateA = driverProfile.GetValue(DriverProgId, SwitchStateAProfileName, "PWM 1/2 Autp", SwitchStateADefault);
             }
         }
 
@@ -1350,6 +1412,8 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
                 driverProfile.WriteValue(DriverProgId, SwitchState8ProfileName, SwitchState8.ToString(), "Power sensor");
                 driverProfile.WriteValue(DriverProgId, SwitchName9ProfileName, SwitchName9.ToString(), "Total power usage");
                 driverProfile.WriteValue(DriverProgId, SwitchState9ProfileName, SwitchState9.ToString(), "Total power usage");
+                driverProfile.WriteValue(DriverProgId, SwitchNameAProfileName, SwitchNameA.ToString(), "PWM 1/2 Auto");
+                driverProfile.WriteValue(DriverProgId, SwitchStateAProfileName, SwitchStateA.ToString(), "PWM 1/2 Auto");
             }
         }
 
