@@ -39,15 +39,15 @@ float PWR = 0.00;
 long int time1=0;
 long int time2=0;
 float timetotal_ntc=0;
+double PWR_TOTAL_H;
 float PWR_TOTAL=0.00;
 
 const int DC_JACK = 4;
 const int PWM1 = 5;
 const int PWM2 = 6;
-const int DHT22_VCC = 7;
-const int DHT22_DATA = 8;
-const int DHT22_GND = 9;
-const int NTC_VCC = 12;
+const int DHT22_DATA = 3;
+const int DHT22_VCC = 2;
+const int NTC_VCC = 7;
 const int VM = A0;
 const int AM = A1;
 const int NTC1 = A2;
@@ -59,6 +59,7 @@ void setup()
     pinMode(PWM1, OUTPUT);
     pinMode(PWM2, OUTPUT);
     pinMode(DHT22_DATA, INPUT);
+    pinMode(DHT22_VCC, OUTPUT);
     pinMode(NTC_VCC, OUTPUT);
     pinMode(VM, INPUT);
     pinMode(AM, INPUT);
@@ -69,6 +70,7 @@ void setup()
     digitalWrite(PWM1, LOW);
     digitalWrite(PWM2, LOW);
     digitalWrite(NTC_VCC,LOW);
+    digitalWrite(DHT22_VCC,HIGH);
     Serial.begin(9600);
     Serial.flush();
 }
@@ -78,8 +80,6 @@ void loop()
 {
   RUN_AUTO_PWM();
   GET_POWER();
-  //NTC1_VALUE = GET_NTC(1);
-  //NTC2_VALUE = GET_NTC(2);
     String cmd;
 
     if (Serial.available() > 0) {
@@ -197,14 +197,14 @@ void SET_PWM_POWER(int pwmno,int state) {
 
 // RUN PWM AUTO 
 void RUN_AUTO_PWM() {
-   if (HUM_REL >= 40 || TEMP-DEWPOINT <= 5) DP_OFFSET = 1;
-   else if (HUM_REL >= 60 || TEMP-DEWPOINT <= 4) DP_OFFSET = 2;
-   else if (HUM_REL >= 70 || TEMP-DEWPOINT <= 3) DP_OFFSET = 3;
-   else if (HUM_REL < 40 || TEMP-DEWPOINT > 5) DP_OFFSET = 0;
+   if (HUM_REL < 50) DP_OFFSET = 0;
+   else if (HUM_REL >= 50) DP_OFFSET = (HUM_REL / 10) - 5;
    if(PWM_AUTO == 1) // PWM1 AUTO
    {
     if (timetotal_ntc > 1023)
      {
+     NTC1_VALUE = GET_NTC(1);
+     NTC2_VALUE = GET_NTC(2);
      if (NTC1_VALUE > -40) {
      if (NTC1_VALUE - (DEWPOINT + DP_OFFSET) < 2 && PWM1_STATE < 100)
      {
@@ -212,7 +212,7 @@ void RUN_AUTO_PWM() {
        PWM1_STATE = CORRECT_PWM(PWM1_STATE);
         SET_PWM_VALUE(1,PWM1_STATE);
       }
-     if (NTC1_VALUE - (DEWPOINT + DP_OFFSET) > 4 && PWM1_STATE > 0)
+     if (NTC1_VALUE - (DEWPOINT + DP_OFFSET) > 5 && PWM1_STATE > 0)
       {
         PWM1_STATE = PWM1_STATE - 5;
         PWM1_STATE = CORRECT_PWM(PWM1_STATE);
@@ -226,7 +226,7 @@ void RUN_AUTO_PWM() {
         PWM2_STATE = CORRECT_PWM(PWM2_STATE);
         SET_PWM_VALUE(2,PWM2_STATE);
      }
-     if (NTC2_VALUE - (DEWPOINT + DP_OFFSET) > 4 && PWM2_STATE>0)
+     if (NTC2_VALUE - (DEWPOINT + DP_OFFSET) > 5 && PWM2_STATE>0)
      {
        PWM2_STATE = PWM2_STATE - 5;
        PWM2_STATE = CORRECT_PWM(PWM2_STATE);
@@ -290,13 +290,13 @@ double GET_NTC(int ntc_no)
     PWR = VOLT * AMP;
     AVERAGE_COUNT = AVERAGE_COUNT + 1;
     time2=millis();
-    PWR_TOTAL=PWR_TOTAL+(PWR*((time2-time1)/3600000)); // Calculate total power used each cycle, then add to power usage. since switch has been connected.
+    PWR_TOTAL_H = (PWR_TOTAL_H + (PWR*(time2-time1)))/3600000;
+    PWR_TOTAL = PWR_TOTAL + PWR_TOTAL_H;
 }
 //END GET POWER USAGE
 
 //GET AMBIENT CONDITIONS
   void GET_AMBIENT() {
-  digitalWrite(DHT22_GND,LOW);
   int PIN_VALUE_T = DHT.read22(DHT22_DATA);
    HUM_REL = DHT.getHumidity();
    TEMP = DHT.getTemperature();

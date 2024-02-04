@@ -46,7 +46,7 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             }
             if (chkNTC.Checked == true)
             {
-                SwitchHardware.numSwitch = "11";
+                SwitchHardware.numSwitch = "13";
             }
             else if (chkNTC.Checked == false)
             {
