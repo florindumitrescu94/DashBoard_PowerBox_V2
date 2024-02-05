@@ -302,7 +302,7 @@ NTC_DELAY+=1;
     if (AVERAGE_COUNT == 150) AVERAGE_COUNT = 0;
     PIN_VALUE_V = analogRead(VM);     
     VOLT_TEMP = (PIN_VALUE_V * 5.0) / 1024.0;   
-    VOLT = VOLT_TEMP / 0.092;        
+    VOLT = VOLT_TEMP / 0.0988;        
     if (VOLT < 0.1) VOLT=0.0;    
     CURRENT_SAMPLE_SUM=0;
     for (int i=0;i<150;i++)
@@ -310,7 +310,7 @@ NTC_DELAY+=1;
       PIN_VALUE_A= analogRead(AM);
       CURRENT_SAMPLE_SUM = CURRENT_SAMPLE_SUM + PIN_VALUE_A;
     }
-    AMP_AVERAGE[AVERAGE_COUNT] = ((2.494 - ((CURRENT_SAMPLE_SUM/150)*(5.0/1024.0)))*-1) / 0.10;
+    AMP_AVERAGE[AVERAGE_COUNT] = (2.494 - ((CURRENT_SAMPLE_SUM/150)*(5.0/1024.0))) / 0.10;
     AVGAMP=0;
     for (int c=0;c<150;c++) AVGAMP += AMP_AVERAGE[c];
     AMP = AVGAMP/150;
