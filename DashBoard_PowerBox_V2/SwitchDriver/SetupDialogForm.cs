@@ -44,14 +44,6 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
                 SwitchHardware.comPort = (string)comboBoxComPort.SelectedItem;
                 tl.LogMessage("Setup OK", $"New configuration values - COM Port: {comboBoxComPort.SelectedItem}");
             }
-            if (chkNTC.Checked == true)
-            {
-                SwitchHardware.numSwitch = "13";
-            }
-            else if (chkNTC.Checked == false)
-            {
-                SwitchHardware.numSwitch = "10";
-            }
         }
 
         private void CmdCancel_Click(object sender, EventArgs e) // Cancel button event handler

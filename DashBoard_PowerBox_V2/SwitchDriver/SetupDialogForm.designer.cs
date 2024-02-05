@@ -36,7 +36,6 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             this.label2 = new System.Windows.Forms.Label();
             this.chkTrace = new System.Windows.Forms.CheckBox();
             this.comboBoxComPort = new System.Windows.Forms.ComboBox();
-            this.chkNTC = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.picASCOM)).BeginInit();
             this.SuspendLayout();
             // 
@@ -95,7 +94,7 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             // chkTrace
             // 
             this.chkTrace.AutoSize = true;
-            this.chkTrace.Location = new System.Drawing.Point(12, 80);
+            this.chkTrace.Location = new System.Drawing.Point(12, 64);
             this.chkTrace.Name = "chkTrace";
             this.chkTrace.Size = new System.Drawing.Size(69, 17);
             this.chkTrace.TabIndex = 6;
@@ -110,22 +109,11 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
             this.comboBoxComPort.Size = new System.Drawing.Size(69, 21);
             this.comboBoxComPort.TabIndex = 7;
             // 
-            // chkNTC
-            // 
-            this.chkNTC.AutoSize = true;
-            this.chkNTC.Location = new System.Drawing.Point(12, 57);
-            this.chkNTC.Name = "chkNTC";
-            this.chkNTC.Size = new System.Drawing.Size(167, 17);
-            this.chkNTC.TabIndex = 8;
-            this.chkNTC.Text = "Dew temp sensors connected";
-            this.chkNTC.UseVisualStyleBackColor = true;
-            // 
             // SetupDialogForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(278, 114);
-            this.Controls.Add(this.chkNTC);
             this.Controls.Add(this.comboBoxComPort);
             this.Controls.Add(this.chkTrace);
             this.Controls.Add(this.label2);
@@ -156,6 +144,5 @@ namespace ASCOM.DashBoardPowerBoxV2.Switch
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.CheckBox chkTrace;
         private System.Windows.Forms.ComboBox comboBoxComPort;
-        private System.Windows.Forms.CheckBox chkNTC;
     }
 }

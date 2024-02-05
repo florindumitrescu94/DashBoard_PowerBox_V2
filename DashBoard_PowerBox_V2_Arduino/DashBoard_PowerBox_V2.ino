@@ -17,7 +17,8 @@ int PWM1_STATE = 0;
 int PWM2_STATE = 0;
 int ntc_beta = 3380;
 int ntc_ohm = 10000;
-int ref_ohm = 10000;
+int ref_ohm1 = 10080;
+int ref_ohm2 = 10000;
 float NTC1_VALUE = 0;
 int PWM_AUTO = 0;
 float NTC2_VALUE = 0;
@@ -39,14 +40,15 @@ float PWR = 0.00;
 long int time1=0;
 long int time2=0;
 float timetotal_ntc=0;
-double PWR_TOTAL_H;
+double PWR_TOTAL_H=0.00;
 float PWR_TOTAL=0.00;
+float NTC_DELAY;
 
 const int DC_JACK = 4;
 const int PWM1 = 5;
 const int PWM2 = 6;
-const int DHT22_DATA = 3;
 const int DHT22_VCC = 2;
+const int DHT22_DATA = 3;
 const int NTC_VCC = 7;
 const int VM = A0;
 const int AM = A1;
@@ -67,10 +69,10 @@ void setup()
     pinMode(NTC2, INPUT);
 
     digitalWrite(DC_JACK, LOW);
+    digitalWrite(DHT22_VCC, HIGH);
     digitalWrite(PWM1, LOW);
     digitalWrite(PWM2, LOW);
     digitalWrite(NTC_VCC,LOW);
-    digitalWrite(DHT22_VCC,HIGH);
     Serial.begin(9600);
     Serial.flush();
 }
@@ -80,6 +82,7 @@ void loop()
 {
   RUN_AUTO_PWM();
   GET_POWER();
+  GET_NTC();
     String cmd;
 
     if (Serial.available() > 0) {
@@ -94,6 +97,16 @@ void loop()
         else if (cmd == "GETSTATUSPWM1") 
         { 
             Serial.print(PWM1_STATE);
+            Serial.println("#");
+        }
+        else if (cmd == "GETNTC1") 
+        {
+          Serial.print(NTC1_VALUE);
+            Serial.println("#");
+        }
+        else if (cmd == "GETNTC2") 
+        {
+          Serial.print(NTC2_VALUE);
             Serial.println("#");
         }
         else if (cmd == "GETAUTOPWM") 
@@ -197,14 +210,15 @@ void SET_PWM_POWER(int pwmno,int state) {
 
 // RUN PWM AUTO 
 void RUN_AUTO_PWM() {
-   if (HUM_REL < 50) DP_OFFSET = 0;
-   else if (HUM_REL >= 50) DP_OFFSET = (HUM_REL / 10) - 5;
+   if (HUM_REL >= 40 || TEMP-DEWPOINT <= 5) DP_OFFSET = 1;
+   else if (HUM_REL >= 60 || TEMP-DEWPOINT <= 4) DP_OFFSET = 2;
+   else if (HUM_REL >= 70 || TEMP-DEWPOINT <= 3) DP_OFFSET = 3;
+   else if (HUM_REL < 40 || TEMP-DEWPOINT > 5) DP_OFFSET = 0;
+   
    if(PWM_AUTO == 1) // PWM1 AUTO
    {
     if (timetotal_ntc > 1023)
      {
-     NTC1_VALUE = GET_NTC(1);
-     NTC2_VALUE = GET_NTC(2);
      if (NTC1_VALUE > -40) {
      if (NTC1_VALUE - (DEWPOINT + DP_OFFSET) < 2 && PWM1_STATE < 100)
      {
@@ -212,7 +226,7 @@ void RUN_AUTO_PWM() {
        PWM1_STATE = CORRECT_PWM(PWM1_STATE);
         SET_PWM_VALUE(1,PWM1_STATE);
       }
-     if (NTC1_VALUE - (DEWPOINT + DP_OFFSET) > 5 && PWM1_STATE > 0)
+     if (NTC1_VALUE - (DEWPOINT + DP_OFFSET) > 4 && PWM1_STATE > 0)
       {
         PWM1_STATE = PWM1_STATE - 5;
         PWM1_STATE = CORRECT_PWM(PWM1_STATE);
@@ -226,7 +240,7 @@ void RUN_AUTO_PWM() {
         PWM2_STATE = CORRECT_PWM(PWM2_STATE);
         SET_PWM_VALUE(2,PWM2_STATE);
      }
-     if (NTC2_VALUE - (DEWPOINT + DP_OFFSET) > 5 && PWM2_STATE>0)
+     if (NTC2_VALUE - (DEWPOINT + DP_OFFSET) > 4 && PWM2_STATE>0)
      {
        PWM2_STATE = PWM2_STATE - 5;
        PWM2_STATE = CORRECT_PWM(PWM2_STATE);
@@ -242,29 +256,43 @@ void RUN_AUTO_PWM() {
 //END SET AUTO PWM POWER
 
 //GET NTC TEMP
-double GET_NTC(int ntc_no)
-{
- digitalWrite(NTC_VCC,HIGH);
-   int ntc_read_sum = 0;
-   float avg_read = 0;
+void GET_NTC(){
+   if (NTC_DELAY == 250){
+   digitalWrite(NTC_VCC,HIGH);
+   int ntc1_read_sum = 0;
+   int ntc2_read_sum = 0;
+   float avg1_read = 0;
+   float avg2_read = 0;
    for (int i=0;i<40;i++)
    {
-    if (ntc_no == 1) ntc_read_sum +=analogRead(NTC1);
-    else if (ntc_no == 2) ntc_read_sum +=analogRead(NTC2);
+    ntc1_read_sum +=analogRead(NTC1);
+    delay(1);
+    ntc2_read_sum +=analogRead(NTC2);
    }
-   avg_read = ntc_read_sum/40;
+   avg1_read = ntc1_read_sum/40;
+   avg2_read = ntc2_read_sum/40;
    digitalWrite(NTC_VCC,LOW);
-   avg_read = 1023 / avg_read-1;
-   avg_read = ntc_ohm / avg_read;
-   float temp_ntc = avg_read / ref_ohm ;
-   temp_ntc=log(temp_ntc);
-   temp_ntc /= ntc_beta;
-   temp_ntc +=1.0/(25 + 273.15);
-   temp_ntc = (1.0/temp_ntc) - 273.15; 
-   if (isnan(temp_ntc)){
-    temp_ntc = -40;
+   avg1_read = (1023 / avg1_read)-1;
+   avg2_read = (1023 / avg2_read)-1;
+   avg1_read = ntc_ohm / avg1_read;
+   avg2_read = ntc_ohm / avg2_read;
+   float temp1_ntc = avg1_read / ref_ohm1 ;
+   float temp2_ntc = avg2_read/ ref_ohm2;
+   temp1_ntc=log(temp1_ntc);
+   temp1_ntc /= ntc_beta;
+   temp1_ntc +=1.0/(25 + 273.15);
+   temp1_ntc = (1.0/temp1_ntc) - 273.15; 
+   if (isnan(temp1_ntc)) temp1_ntc = -40;
+   temp2_ntc=log(temp2_ntc);
+   temp2_ntc /= ntc_beta;
+   temp2_ntc +=1.0/(25 + 273.15);
+   temp2_ntc = (1.0/temp2_ntc) - 273.15; 
+   if (isnan(temp2_ntc))temp2_ntc = -40;
+   NTC1_VALUE=temp1_ntc - 1;
+   NTC2_VALUE=temp2_ntc - 1;
+   NTC_DELAY = 0;
    }
-   return temp_ntc;
+NTC_DELAY+=1;
 }
 // END GET NTC TEMP
 
@@ -291,7 +319,7 @@ double GET_NTC(int ntc_no)
     AVERAGE_COUNT = AVERAGE_COUNT + 1;
     time2=millis();
     PWR_TOTAL_H = (PWR_TOTAL_H + (PWR*(time2-time1)))/3600000;
-    PWR_TOTAL = PWR_TOTAL + PWR_TOTAL_H;
+    PWR_TOTAL = PWR_TOTAL + PWR_TOTAL_H;; // Calculate total power used each cycle, then add to power usage. since switch has been connected.
 }
 //END GET POWER USAGE
 
