@@ -38,7 +38,7 @@ float PWR = 0.00;
 long int time1=0;
 long int time2=0;
 float timetotal_ntc=0;
-double PWR_TOTAL_H=0.00;
+double PWR_TOTAL_S=0.00;
 float PWR_TOTAL=0.00;
 float NTC_DELAY;
 float ACS_resolution;
@@ -336,8 +336,8 @@ NTC_DELAY+=1;
     PWR = VOLT * AMP;
     AVERAGE_COUNT = AVERAGE_COUNT + 1;
     time2=millis();
-    PWR_TOTAL_H = (PWR_TOTAL_H + (PWR*(time2-time1)))/3600000;
-    PWR_TOTAL = PWR_TOTAL + PWR_TOTAL_H;; // Calculate total power used each cycle, then add to power usage. since switch has been connected.
+    PWR_TOTAL_S = PWR_TOTAL_S + ((PWR*(time2-time1))/1000); // total power in W*s
+    PWR_TOTAL = PWR_TOTAL_S/3600;  // Total power used in W*h                                   
 }
 //END GET POWER USAGE
 
