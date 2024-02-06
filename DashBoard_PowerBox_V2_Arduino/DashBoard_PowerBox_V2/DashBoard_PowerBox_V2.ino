@@ -11,14 +11,12 @@ DHTStable DHT;
 
 
 
-//DECLARE VARIABLES
+
+
+//CODE VARIABLES
 int DC_JACK_STATE = 0;
 int PWM1_STATE = 0;
 int PWM2_STATE = 0;
-int ntc_beta = 3380;
-int ntc_ohm = 10000;
-int ref_ohm1 = 10080;
-int ref_ohm2 = 10000;
 float NTC1_VALUE = 0;
 int PWM_AUTO = 0;
 float NTC2_VALUE = 0;
@@ -43,7 +41,18 @@ float timetotal_ntc=0;
 double PWR_TOTAL_H=0.00;
 float PWR_TOTAL=0.00;
 float NTC_DELAY;
+float ACS_resolution;
 
+//CONSTANTS  --- SET THESE TO YOUR MEASURED VALUES!
+const int ACS_Variant = 20;
+const int ntc_beta = 3380;
+const int ntc_ohm  = 10000;
+const int ref_ohm1 = 10080;
+const int ref_ohm2 = 10000;
+const int vdiv_100k = 100800;
+const int vdiv_10k = 10000;
+
+//PINS
 const int DC_JACK = 4;
 const int PWM1 = 5;
 const int PWM2 = 6;
@@ -75,6 +84,17 @@ void setup()
     digitalWrite(NTC_VCC,LOW);
     Serial.begin(9600);
     Serial.flush();
+    switch (ACS_Variant){
+    case 5: 
+    ACS_resolution = 0.185;
+    break;
+    case 20: 
+    ACS_resolution = 0.100;
+    break;
+    case 30:
+    ACS_resolution = 0.066;
+    break;
+    }
 }
 
 //LOOP TO READ SERIAL COMMANDS
@@ -302,7 +322,7 @@ NTC_DELAY+=1;
     if (AVERAGE_COUNT == 150) AVERAGE_COUNT = 0;
     PIN_VALUE_V = analogRead(VM);     
     VOLT_TEMP = (PIN_VALUE_V * 5.0) / 1024.0;   
-    VOLT = VOLT_TEMP / 0.0988;        
+    VOLT = VOLT_TEMP / (vdiv_10k/vdiv_100k);        
     if (VOLT < 0.1) VOLT=0.0;    
     CURRENT_SAMPLE_SUM=0;
     for (int i=0;i<150;i++)
@@ -310,7 +330,7 @@ NTC_DELAY+=1;
       PIN_VALUE_A= analogRead(AM);
       CURRENT_SAMPLE_SUM = CURRENT_SAMPLE_SUM + PIN_VALUE_A;
     }
-    AMP_AVERAGE[AVERAGE_COUNT] = (2.494 - ((CURRENT_SAMPLE_SUM/150)*(5.0/1024.0))) / 0.10;
+    AMP_AVERAGE[AVERAGE_COUNT] = (2.494 - ((CURRENT_SAMPLE_SUM/150)*(5.0/1024.0))) / ACS_resolution;
     AVGAMP=0;
     for (int c=0;c<150;c++) AVGAMP += AMP_AVERAGE[c];
     AMP = AVGAMP/150;
