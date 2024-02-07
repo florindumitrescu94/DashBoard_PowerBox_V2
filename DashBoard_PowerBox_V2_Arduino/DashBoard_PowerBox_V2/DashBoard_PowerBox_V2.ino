@@ -41,7 +41,7 @@ float timetotal_ntc=0;
 double PWR_TOTAL_S=0.00;
 float PWR_TOTAL=0.00;
 float NTC_DELAY;
-float ACS_resolution;
+double ACS_resolution;
 
 //CONSTANTS  --- SET THESE TO YOUR MEASURED VALUES!
 const int ACS_Variant = 20;
@@ -49,7 +49,6 @@ const int ntc_beta = 3380;
 const int ntc_ohm  = 10000;
 const int ref_ohm1 = 10080;
 const int ref_ohm2 = 10000;
-const float ACS_Bias = 2.494;
 
 //PINS
 const int DC_JACK = 4;
@@ -332,7 +331,7 @@ NTC_DELAY+=1;
       PIN_VALUE_A= analogRead(AM);
       CURRENT_SAMPLE_SUM = CURRENT_SAMPLE_SUM + PIN_VALUE_A;
     }
-    AMP_AVERAGE[AVERAGE_COUNT] = (ACS_Bias - ((CURRENT_SAMPLE_SUM/150)*(5.0/1024.0))) / ACS_resolution;
+    AMP_AVERAGE[AVERAGE_COUNT] = (2.494 - ((CURRENT_SAMPLE_SUM/150)*(5.0/1024.0))) / ACS_resolution;
     AVGAMP=0;
     for (int c=0;c<150;c++) AVGAMP += AMP_AVERAGE[c];
     AMP = AVGAMP/150;
