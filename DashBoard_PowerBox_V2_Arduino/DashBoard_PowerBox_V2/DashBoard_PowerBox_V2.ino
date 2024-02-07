@@ -49,8 +49,6 @@ const int ntc_beta = 3380;
 const int ntc_ohm  = 10000;
 const int ref_ohm1 = 10080;
 const int ref_ohm2 = 10000;
-const int vdiv_100k = 100800;
-const int vdiv_10k = 10000;
 const float ACS_Bias = 2.494;
 
 //PINS
@@ -318,9 +316,15 @@ NTC_DELAY+=1;
   void GET_POWER() {
     time1=millis();
     if (AVERAGE_COUNT == 150) AVERAGE_COUNT = 0;
-    PIN_VALUE_V = analogRead(VM);     
-    VOLT_TEMP = (PIN_VALUE_V * 5.0) / 1024.0;   
-    VOLT = VOLT_TEMP / (vdiv_10k/vdiv_100k);        
+    float VOLTAGE_SAMPLE_SUM=0;
+    for (int v=0;v<150;v++) 
+    {
+      PIN_VALUE_V =  analogRead(VM);
+      VOLTAGE_SAMPLE_SUM +=PIN_VALUE_V;     
+    }
+    VOLTAGE_SAMPLE_SUM /=150;
+    VOLT_TEMP = (VOLTAGE_SAMPLE_SUM * 5.0) / 1024.0;   
+    VOLT = VOLT_TEMP / 0.0982;        
     if (VOLT < 0.1) VOLT=0.0;    
     CURRENT_SAMPLE_SUM=0;
     for (int i=0;i<150;i++)
