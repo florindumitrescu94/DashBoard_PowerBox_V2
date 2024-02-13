@@ -35,20 +35,20 @@ float AMP_AVERAGE[150];
 float AVGAMP;
 float AMP = 0.00;
 float PWR = 0.00;
-long int time1=0;
-long int time2=0;
+double time1=0.0;
+double time2=0.0;
 float timetotal_ntc=0;
-double PWR_TOTAL_S=0.00;
 float PWR_TOTAL=0.00;
 float NTC_DELAY;
+float prev_pwr;
 double ACS_resolution;
 
 //CONSTANTS  --- SET THESE TO YOUR MEASURED VALUES!
 const int ACS_Variant = 20;
-const int ntc_beta = 3380;
-const int ntc_ohm  = 10000;
-const int ref_ohm1 = 10080;
-const int ref_ohm2 = 10000;
+const float ntc_beta = 3380.0;
+const float ntc_ohm  = 10000.0;
+const float ref_ohm1 = 10080.0;
+const float ref_ohm2 = 10000.0;
 
 //PINS
 const int DC_JACK = 4;
@@ -338,9 +338,10 @@ NTC_DELAY+=1;
     if (AMP< 0.01) AMP=0.0;
     PWR = VOLT * AMP;
     AVERAGE_COUNT = AVERAGE_COUNT + 1;
+    PWR_TOTAL = PWR_TOTAL+ ((((prev_pwr+PWR)/2)*(time1-time2))/3600000); // total power in W*h 
+    prev_pwr=PWR;
     time2=millis();
-    PWR_TOTAL_S = PWR_TOTAL_S + ((PWR*(time2-time1))/1000); // total power in W*s
-    PWR_TOTAL = PWR_TOTAL_S/3600;  // Total power used in W*h                                   
+    PWR_TOTAL = PWR_TOTAL+ ((PWR*(time2-time1))/3600000); // total power in W*h                                
 }
 //END GET POWER USAGE
 
