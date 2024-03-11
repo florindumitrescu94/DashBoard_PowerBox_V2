@@ -326,11 +326,9 @@ void SET_PWM_POWER(int pwmno,int state) {
 // RUN PWM AUTO 
 void RUN_AUTO_PWM() {
    if (HUM_REL>50) DP_OFFSET = ((HUM_REL/10)-5);
-
+   else if (HUM_REL<50) DP_OFFSET = 0;
    if(PWM_AUTO == 1) // PWM1 AUTO
    {
-    if (timetotal_ntc > 1023)
-     {
      if (NTC1_VALUE > -40) {
      if (NTC1_VALUE - (DEWPOINT + DP_OFFSET) < 2 && PWM1_STATE < 100)
      {
@@ -359,9 +357,6 @@ void RUN_AUTO_PWM() {
        SET_PWM_VALUE(2,PWM2_STATE);
      }
      }
-        timetotal_ntc = 0;
-     }
-      timetotal_ntc += 1;
    }
    else if (PWM_AUTO == 0) timetotal_ntc = 0;
 }
