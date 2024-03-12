@@ -43,8 +43,8 @@ float PWR_TOTAL=0.00;
 float NTC_DELAY;
 double ACS_resolution;
 
-#define QUEUELENGTH         5             // number of commands that can be saved in the serial queue
-#define MAXCOMMAND          21            // max length of a command
+#define QUEUELENGTH         10             // number of commands that can be saved in the serial queue
+#define MAXCOMMAND          42            // max length of a command
 #define EOFSTR              '\n'
 #define EOCOMMAND           '#'           // defines the end character of a command
 #define SOCOMMAND           '>'           // defines the start character of a command
@@ -142,6 +142,10 @@ void setup()
     lastm = now;
 }
 
+void clearSerialPort() {
+  while ( Serial.available() )
+    Serial.read();
+}
 
 // SerialEvent occurs whenever new data comes in the serial RX.
 // you should really consider a start of command character.
@@ -155,6 +159,11 @@ void serialEvent() {
     char inChar = Serial.read();
     switch ( inChar )
     {
+      case '>':     // soc, reinit line
+        // memset(line, 0, MAXCOMMAND);
+        line = "";
+        idx = 0;
+        break;
       case '#':     // eoc
         line.toCharArray(buf, MAXCOMMAND);
         idx = 0;
@@ -176,72 +185,57 @@ void processSerialCommand() {
     return;
 
   String cmd = String(pop());
-  if (cmd == "GETSTATUSDCJACK") {
-      Serial.print(DC_JACK_STATE);
-      Serial.println("#");
-  }
-  else if (cmd == "SETSTATUSDCJACK_OFF") SET_DC_JACK(0);
+  //if (cmd == "GETSTATUSDCJACK") {
+    //  Serial.print(DC_JACK_STATE);
+      //Serial.println("#");
+  //}
+  if (cmd == "SETSTATUSDCJACK_OFF") SET_DC_JACK(0);
   else if (cmd == "SETSTATUSDCJACK_ON") SET_DC_JACK(1);
-  else if (cmd == "GETSTATUSPWM1") { 
-      Serial.print(PWM1_STATE);
-      Serial.println("#");
-  }
-  else if (cmd == "GETNTC1") {
-    Serial.print(NTC1_VALUE);
-      Serial.println("#");
-  }
-  else if (cmd == "GETNTC2") {
-    Serial.print(NTC2_VALUE);
-      Serial.println("#");
-  }
-  else if (cmd == "GETAUTOPWM") {
-    Serial.print(PWM_AUTO);
-      Serial.println("#");
-  }
   else if (cmd == "SETAUTOPWM_ON") {
       PWM_AUTO = 1;
-      Serial.print(PWM_AUTO);
-      Serial.println("#");
+      //Serial.print(PWM_AUTO);
+      //Serial.println("#");
   }
   else if (cmd == "SETAUTOPWM_OFF") {
     PWM_AUTO = 0;
-    Serial.print(PWM_AUTO);
-      Serial.println("#");
+    //Serial.print(PWM_AUTO);
+    //Serial.println("#");
   }
+  //else if (cmd == "GETAUTOPWM") {
+    //Serial.print(PWM_AUTO);
+    //Serial.println("#");
+  //}
+  
   else if (cmd.substring(0,13) == "SETSTATUSPWM1") SET_PWM_POWER(1,cmd.substring((cmd.indexOf('_')+1),(cmd.indexOf('_')+4)).toInt()); 
-  else if (cmd == "GETSTATUSPWM2") {
-      Serial.print(PWM2_STATE);
-      Serial.println("#");
-  }
   else if (cmd.substring(0,13) == "SETSTATUSPWM2") SET_PWM_POWER(2,cmd.substring((cmd.indexOf('_')+1),(cmd.indexOf('_')+4)).toInt());
-  else if (cmd == "GETTEMPERATURE") { 
-      GET_AMBIENT();
-      Serial.print(TEMP);
-      Serial.println("#");
-  }
-  else if (cmd == "GETHUMIDITY") {
-      Serial.print(HUM_REL);
-      Serial.println("#");
-  }
-  else if (cmd == "GETDEWPOINT") {
-      Serial.print(DEWPOINT);
-      Serial.println("#");
-  }
-  else if (cmd == "GETVOLTAGE") {
-      Serial.print(VOLT);
-      Serial.println("#");
-  }
-  else if (cmd == "GETCURRENT") { 
-      Serial.print(AMP);
-      Serial.println("#");
-  }
-  else if (cmd == "GETPOWER") {
-      Serial.print(PWR);
-      Serial.println("#");
-  }
-  else if (cmd == "GETUSAGE") {
-      Serial.print(PWR_TOTAL);
-      Serial.println("#");
+  else if (cmd == "REFRESHDATA")
+  {
+    Serial.print(PWM1_STATE);
+    Serial.print(":");
+    Serial.print(PWM2_STATE);
+    Serial.print(":");
+    Serial.print(TEMP);
+    Serial.print(":");
+    Serial.print(HUM_REL);
+    Serial.print(":");
+    Serial.print(DEWPOINT);
+    Serial.print(":");
+    Serial.print(VOLT);
+    Serial.print(":");
+    Serial.print(AMP);
+    Serial.print(":");
+    Serial.print(PWR);
+    Serial.print(":");
+    Serial.print(PWR_TOTAL);
+    Serial.print(":");
+    Serial.print(NTC1_VALUE);
+    Serial.print(":");
+    Serial.print(NTC2_VALUE);
+    Serial.print(":");
+    Serial.print(DC_JACK_STATE);
+    Serial.print(":");
+    Serial.print(PWM_AUTO);
+    Serial.print("#");
   }
 }
 
@@ -249,6 +243,7 @@ void processSerialCommand() {
 //LOOP TO READ SERIAL COMMANDS
 void loop()
 {
+  GET_POWER(); //needs to run constantly for correct calculations
   static byte FSMState = stateIdle;
 
   if ( queueCount >= 1 ) {               // check for serial command
@@ -271,7 +266,7 @@ void loop()
       FSMState = statePower;
       break;
     case statePower:
-      GET_POWER();
+      GET_AMBIENT();
       now = millis();
       FSMState = stateAutoPWM;
       last = now;
@@ -298,8 +293,8 @@ void SET_DC_JACK(int state){
      if (state==0) digitalWrite(DC_JACK, LOW);
      else if (state==1) digitalWrite(DC_JACK, HIGH);
      DC_JACK_STATE = state;
-     Serial.print(DC_JACK_STATE);
-     Serial.println("#");
+     //Serial.print(DC_JACK_STATE);
+     //Serial.println("#");
 }
 //END SET DC JACK STATE
 
@@ -310,15 +305,15 @@ void SET_PWM_POWER(int pwmno,int state) {
     {
     analogWrite(PWM1, pwm_pin);
     PWM1_STATE = state;
-    Serial.print(PWM1_STATE);
-    Serial.println("#");
+    //Serial.print(PWM1_STATE);
+    //Serial.println("#");
     }
     else if (pwmno == 2)
     {
     analogWrite(PWM2, pwm_pin);
     PWM2_STATE = state;
-    Serial.print(PWM2_STATE);
-    Serial.println("#");
+    //Serial.print(PWM2_STATE);
+    //Serial.println("#");
     }
 }
 //END SET PWM POWER
@@ -364,7 +359,6 @@ void RUN_AUTO_PWM() {
 
 //GET NTC TEMP
 void GET_NTC(){
-   if (NTC_DELAY == 250){
    digitalWrite(NTC_VCC,HIGH);
    int ntc1_read_sum = 0;
    int ntc2_read_sum = 0;
@@ -397,9 +391,6 @@ void GET_NTC(){
    if (isnan(temp2_ntc))temp2_ntc = -40;
    NTC1_VALUE=temp1_ntc - 1;
    NTC2_VALUE=temp2_ntc - 1;
-   NTC_DELAY = 0;
-   }
-NTC_DELAY+=1;
 }
 // END GET NTC TEMP
 
