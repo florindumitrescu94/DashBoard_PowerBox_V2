@@ -14,7 +14,7 @@ DHTStable DHT;
 
 
 //CODE VARIABLES
-int DC_JACK_STATE = 0;
+int DC_JACK_STATE = 1;
 int PWM1_STATE = 0;
 int PWM2_STATE = 0;
 float NTC1_VALUE = 0;
