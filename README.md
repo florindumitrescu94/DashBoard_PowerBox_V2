@@ -11,6 +11,5 @@
 </br>
 </br>
 </br>
-<p>Current release version: <a href="https://github.com/florindumitrescu94/DashBoard_PowerBox_V2/releases/tag/v2.0.3"> DashBoard PowerBox V2 Driver 2.0.3 </a> </p>
 <p>For direct contact, you can reach me at florin.dumitrescu94@gmail.com </p>
 <p>Special thanks to wittinobi for making his driver code available! I have learned how an ASCOM driver works by analyzing his code.</p>
